@@ -1,61 +1,105 @@
-let nome = document.getElementById("nome");
-let preco = document.getElementById("preco");
-let url_image = document.getElementById("url_image");
-let link = document.getElementById("link");
+const precoInput = document.getElementById('preco');
 
-function cadastrarProduto() {
-  const produto = {
-    nome: nome.value,
-    preco: parseFloat(preco.value),
-    url_image: url_image.value,
-    link: link.value
-  };
+precoInput.addEventListener('input', function (e) {
+  let v = e.target.value.replace(/\D/g, '');
+  if (!v) { e.target.value = ''; return; }
+  let num = parseInt(v, 10) / 100;
+  e.target.value = 'R$ ' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+});
 
-  // O fetch precisa estar DENTRO da função
-  fetch("/produtos", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(produto)
-  })
-    .then(response => response.json())
-    .then(data => {
-      Swal.fire({
-        icon: 'success',
-        title: 'Produto cadastrado',
-        text: `O produto "${data.nome}" foi cadastrado com sucesso!`,
-      });
-    })
-    .catch(error => {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro ao cadastrar produto',
-        text: 'Ocorreu um erro ao tentar cadastrar o produto. Por favor, tente novamente.',
-      });
+function getPrecoValue() {
+  let v = precoInput.value.replace(/[^\d,]/g, '').replace(',', '.');
+  return parseFloat(v) || 0;
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => { t.className = 'toast'; }, 3500);
+}
+
+function limparForm() {
+  ['nome', 'preco', 'url_image', 'link'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+}
+
+async function cadastrarProduto() {
+  const nome = document.getElementById('nome').value.trim();
+  const preco = getPrecoValue();
+  const url_image = document.getElementById('url_image').value.trim();
+  const link = document.getElementById('link').value.trim();
+
+  if (!nome || !preco || !link) {
+    showToast('Preencha nome, preço e link.', 'error');
+    return;
+  }
+
+  const loading = document.getElementById('loading-cadastrar');
+  loading.classList.add('show');
+
+  try {
+    const res = await fetch('/produtos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, preco, url_image, linkvenda: link })
     });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      showToast(`"${data.nome || nome}" cadastrado com sucesso!`, 'success');
+      limparForm();
+      buscarProdutos();
+    } else {
+      showToast(data.error || 'Erro ao cadastrar produto.', 'error');
+    }
+  } catch (e) {
+    showToast('Erro de conexão com o servidor.', 'error');
+  } finally {
+    loading.classList.remove('show');
+  }
 }
 
-function buscarProdutos(){
-  fetch("/produtos")
-    .then(response => response.json())
-    .then(data => {
-      const listaProdutos = document.getElementById("lista-produtos");
-      listaProdutos.innerHTML = ""; // Limpa a lista antes de adicionar os produtos
-      data.forEach(produto => {
-        const item = document.createElement("div");
-        item.innerHTML = `
-          <h3>${produto.nome}</h3>
-          <p>Preço: R$ ${produto.preco.toFixed(2)}</p>
-          <img src="${produto.url_image}" alt="${produto.nome}" style="max-width: 100px;">
-          <a href="${produto.link}" target="_blank">Ver mais</a>
-        `;
-        listaProdutos.appendChild(item);
-      });
-    })
-    .catch(error => {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro ao buscar produtos',
-        text: 'Ocorreu um erro ao tentar buscar os produtos. Por favor, tente novamente.',
-      });
-    })
+async function buscarProdutos() {
+  try {
+    const res = await fetch('/produtos');
+    const data = await res.json();
+    const lista = document.getElementById('lista-produtos');
+    const badge = document.getElementById('count-badge');
+
+    badge.textContent = data.length + ' produto' + (data.length !== 1 ? 's' : '');
+
+    if (!data.length) {
+      lista.innerHTML = '<div class="empty">Nenhum produto cadastrado ainda.</div>';
+      return;
+    }
+
+    lista.innerHTML = data.map(p => {
+      const preco = parseFloat(p.preco).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      const imgHtml = p.url_image
+        ? `<img class="product-img" src="${p.url_image}" alt="${p.nome}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        : '';
+      const placeholderStyle = p.url_image ? 'style="display:none"' : '';
+      return `
+        <div class="product-item">
+          ${imgHtml}
+          <div class="product-img-placeholder" ${placeholderStyle}>
+            <i class="ti ti-photo" aria-hidden="true"></i>
+          </div>
+          <div style="min-width:0">
+            <p class="product-name">${p.nome}</p>
+            <span class="product-price">${preco}</span>
+          </div>
+          <a class="product-link" href="${p.linkvenda}" target="_blank">
+            <i class="ti ti-external-link" aria-hidden="true"></i>
+          </a>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    showToast('Erro ao buscar produtos.', 'error');
+  }
 }
+
+buscarProdutos();
