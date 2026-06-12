@@ -42,7 +42,7 @@ SELECT * FROM produtos p
 WHERE NOT EXISTS (
   SELECT 1 FROM historico h 
   WHERE h.idproduto = p.idproduto
-  --AND h.quando > now() - interval '7 days'
+  AND h.quando > now() - interval '7 days'
 )
 LIMIT 1
   `);

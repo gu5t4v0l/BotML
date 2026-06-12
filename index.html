@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <title>GL BOT</title>
+</head>
+<body>
+  <main>
+    <div class="inserts">
+      <input type="text" class="input" id="nome" maxlength="50" required="" autocomplete="off" >
+      <label class="user-label" >Name:</label>
+    </div>
+    <div class="inserts">
+      <input type="text" class="input" id="preco" required="" autocomplete="off"   >
+      <label class="user-label" >Price:</label>
+    </div>
+    <div class="inserts">
+      <input type="text" class="input" id="url_image" required="" autocomplete="off"   >
+      <label class="user-label" >Image URL:</label>
+    </div>
+    <div class="inserts">
+      <input type="text" class="input" id="link" required="">
+      <label class="user-label">Link:</label>
+    </div>
+
+    <div class="btnEnviar">
+      <button onclick="buscarProdutos()">Buscar Produtos</button>
+      <button onclick="cadastrarProduto()">Cadastrar Produto</button>
+    </div>
+  </main>
+</body>
+  <script src="/js/Summit.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+</html>
