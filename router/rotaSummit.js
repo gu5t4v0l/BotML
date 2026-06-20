@@ -8,7 +8,7 @@ router.get("/", async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Erro ao buscar produtos" });
+    res.status(500).json({ error: "Erro ao buscar produtos", detail: err.message, code: err.code });
   }
 });
 
