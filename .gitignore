@@ -4,4 +4,6 @@ db.js
 sessions/
 .wwebjs_auth/
 .wwebjs_cache/
-package-lock.json
+package-lock.
+
+
